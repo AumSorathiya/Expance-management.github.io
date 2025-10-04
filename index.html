@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expense Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <noscript>
+    <div class="noscript">This app requires JavaScript to run. Please enable JavaScript.</div>
+  </noscript>
+
+  <div id="app">
+    <!-- Auth View -->
+    <section id="auth-view" class="auth-view">
+      <div class="auth-card">
+        <div class="brand">
+          <i class="fa-solid fa-receipt"></i>
+          <span>EMS</span>
+        </div>
+        <h1>Sign in</h1>
+        <p class="muted">Use your email and password to continue.</p>
+        <form id="login-form" class="form-grid">
+          <label>Email
+            <input type="email" id="login-email" placeholder="admin@ems.local" required />
+          </label>
+          <label>Password
+            <input type="password" id="login-password" placeholder="admin123" required />
+          </label>
+          <button type="submit" class="btn btn-primary full">Sign In</button>
+        </form>
+        <div class="auth-actions">
+          <button id="open-setup-btn" class="btn btn-ghost">
+            <i class="fa-solid fa-building"></i> Create New Account
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- App Layout -->
+    <div id="main-layout" class="layout hidden">
+      <aside id="sidebar" class="sidebar">
+        <div class="sidebar-brand">
+          <i class="fa-solid fa-receipt"></i>
+          <span>EMS</span>
+        </div>
+        <nav>
+          <button class="nav-item active" data-view="dashboard-view"><i class="fa-solid fa-gauge"></i><span>Dashboard</span></button>
+          <button class="nav-item" data-view="expenses-view"><i class="fa-solid fa-file-invoice-dollar"></i><span>Expenses</span></button>
+          <button class="nav-item" data-view="approvals-view" data-role="MANAGER,FINANCE,DIRECTOR,ADMIN,CFO"><i class="fa-solid fa-check-double"></i><span>Approvals</span></button>
+          <button class="nav-item" data-view="users-view" data-role="ADMIN,CFO"><i class="fa-solid fa-users-gear"></i><span>Users</span></button>
+          <button class="nav-item" data-view="rules-view" data-role="ADMIN,CFO"><i class="fa-solid fa-sliders"></i><span>Rules</span></button>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <header id="topbar" class="topbar">
+          <button id="sidebar-toggle" class="icon-btn" title="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+          <div class="spacer"></div>
+          <div id="company-badge" class="company-badge">—</div>
+          <div id="current-user" class="current-user">—</div>
+          <button id="logout-btn" class="btn btn-ghost"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+        </header>
+
+        <main id="content" class="content">
+          <!-- Dashboard -->
+          <section id="dashboard-view" class="view">
+            <div class="cards" id="dashboard-cards"></div>
+            <div class="panel">
+              <h3>Recent Activity</h3>
+              <div id="recent-activity" class="activity-list"></div>
+            </div>
+          </section>
+
+          <!-- Expenses -->
+          <section id="expenses-view" class="view hidden">
+            <div class="toolbar">
+              <div class="filters">
+                <input id="exp-search" type="search" placeholder="Search description or category" />
+                <select id="exp-status-filter">
+                  <option value="">All Statuses</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="APPROVED">Approved</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+                <select id="exp-category-filter">
+                  <option value="">All Categories</option>
+                  <option>Travel</option>
+                  <option>Meals</option>
+                  <option>Supplies</option>
+                  <option>Software</option>
+                  <option>Other</option>
+                </select>
+                <input id="exp-date-from" type="date" />
+                <input id="exp-date-to" type="date" />
+              </div>
+              <div class="actions">
+                <button id="new-expense-btn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> New Expense</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table" id="expenses-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Employee</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Company Amt</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Approvals -->
+          <section id="approvals-view" class="view hidden">
+            <div class="toolbar">
+              <div class="filters">
+                <input id="appr-search" type="search" placeholder="Search description or employee" />
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table" id="approvals-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Employee</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Step</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Users -->
+          <section id="users-view" class="view hidden">
+            <div class="toolbar">
+              <div class="spacer"></div>
+              <div class="actions">
+                <button id="manage-roles-btn" class="btn btn-ghost"><i class="fa-solid fa-shield-halved"></i> Manage Roles</button>
+                <button id="add-user-btn" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Add User</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table" id="users-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Roles</th>
+                    <th>Manager</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Rules -->
+          <section id="rules-view" class="view hidden">
+            <div class="panel">
+              <h3>Approval Rules</h3>
+              <form id="rules-form" class="rules-form">
+                <div class="rule">
+                  <label class="switch">
+                    <input type="checkbox" id="rule-percentage-enabled" />
+                    <span>Enable Percentage Rule</span>
+                  </label>
+                  <div class="inline">
+                    <label>Threshold (%)
+                      <input type="number" id="rule-percentage-threshold" min="1" max="100" value="50"/>
+                    </label>
+                  </div>
+                </div>
+                <div class="rule">
+                  <label class="switch">
+                    <input type="checkbox" id="rule-cfo-enabled" />
+                    <span>Enable Specific Approver Rule (CFO override)</span>
+                  </label>
+                  <div class="inline">
+                    <label>Specific approver role
+                      <select id="rule-cfo-role"></select>
+                    </label>
+                  </div>
+                </div>
+                <div class="rule">
+                  <label class="switch">
+                    <input type="checkbox" id="rule-hybrid-enabled" />
+                    <span>Enable Hybrid Rule (CFO OR Percentage)</span>
+                  </label>
+                </div>
+                <div class="rule">
+                  <label>Steps:</label>
+                  <div id="steps-list" class="steps-list"></div>
+                  <div class="inline">
+                    <select id="add-step-role"></select>
+                    <button type="button" id="add-step-btn" class="btn btn-ghost"><i class="fa-solid fa-plus"></i> Add Step</button>
+                  </div>
+                  <p class="muted">Order matters. If a step is <strong>MANAGER</strong>, only the employee's manager can approve that step.</p>
+                </div>
+                <div class="actions">
+                  <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Rules</button>
+                </div>
+              </form>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-backdrop" class="modal-backdrop hidden"></div>
+
+    <!-- Company Setup Modal -->
+    <div id="company-setup-modal" class="modal hidden">
+      <div class="modal-card">
+        <header>
+          <h3>Initial Setup</h3>
+          <button class="icon-btn modal-close" data-close="company-setup-modal"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <form id="company-setup-form" class="form-grid">
+          <label>Company Name
+            <input id="setup-company-name" type="text" placeholder="Your Company" required />
+          </label>
+          <label>Country
+            <select id="setup-country" required></select>
+          </label>
+          <label>Currency
+            <input id="setup-currency" type="text" placeholder="USD" readonly />
+          </label>
+          <div class="divider"></div>
+          <h4>Admin Account</h4>
+          <label>Full Name
+            <input id="setup-admin-name" type="text" placeholder="Your Name" required />
+          </label>
+          <label>Email
+            <input id="setup-admin-email" type="email" placeholder="you@example.com" required />
+          </label>
+          <label>Password
+            <input id="setup-admin-password" type="password" placeholder="••••••••" required />
+          </label>
+          <div class="actions end">
+            <button type="submit" class="btn btn-primary">Finish Setup</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Expense Modal -->
+    <div id="expense-modal" class="modal hidden">
+      <div class="modal-card">
+        <header>
+          <h3 id="expense-modal-title">New Expense</h3>
+          <button class="icon-btn modal-close" data-close="expense-modal"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <form id="expense-form" class="form-grid">
+          <label>Amount
+            <input id="exp-amount" type="number" step="0.01" min="0" required />
+          </label>
+          <label>Currency
+            <select id="exp-currency" required></select>
+          </label>
+          <label>Category
+            <select id="exp-category" required>
+              <option>Travel</option>
+              <option>Meals</option>
+              <option>Supplies</option>
+              <option>Software</option>
+              <option>Other</option>
+            </select>
+          </label>
+          <label>Date
+            <input id="exp-date" type="date" required />
+          </label>
+          <label class="col-span-2">Description
+            <textarea id="exp-description" rows="3" placeholder="Add details"></textarea>
+          </label>
+          <label class="col-span-2">Receipt (image)
+            <input id="exp-receipt" type="file" accept="image/*" />
+          </label>
+          <div class="inline">
+            <button type="button" id="btn-ocr" class="btn btn-ghost"><i class="fa-solid fa-wand-magic-sparkles"></i> Extract text (simulate OCR)</button>
+          </div>
+          <div class="actions end col-span-2">
+            <button type="submit" class="btn btn-primary">Save Expense</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Approval Modal -->
+    <div id="approval-modal" class="modal hidden">
+      <div class="modal-card">
+        <header>
+          <h3>Approval Action</h3>
+          <button class="icon-btn modal-close" data-close="approval-modal"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <form id="approval-form" class="form-grid">
+          <input type="hidden" id="approval-expense-id" />
+          <input type="hidden" id="approval-decision" />
+          <label class="col-span-2">Comment (optional)
+            <textarea id="approval-comment" rows="3" placeholder="Add a note for the requester"></textarea>
+          </label>
+          <div class="actions end col-span-2">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="user-modal" class="modal hidden">
+      <div class="modal-card">
+        <header>
+          <h3 id="user-modal-title">Add User</h3>
+          <button class="icon-btn modal-close" data-close="user-modal"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <form id="user-form" class="form-grid">
+          <input type="hidden" id="user-id" />
+          <label>Full Name
+            <input id="user-name" type="text" required />
+          </label>
+          <label>Email
+            <input id="user-email" type="email" required />
+          </label>
+          <label>Password
+            <input id="user-password" type="password" placeholder="Set a password" />
+          </label>
+          <fieldset class="col-span-2">
+            <legend>Roles</legend>
+            <div id="roles-checkboxes" class="roles-grid"></div>
+          </fieldset>
+          <label id="manager-select-wrap" class="hidden">Manager
+            <select id="user-manager"></select>
+          </label>
+          <div class="actions end col-span-2">
+            <button type="submit" class="btn btn-primary">Save User</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Roles Modal -->
+    <div id="roles-modal" class="modal hidden">
+      <div class="modal-card">
+        <header>
+          <h3>Manage Roles</h3>
+          <button class="icon-btn modal-close" data-close="roles-modal"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <form id="role-add-form" class="form-grid">
+          <label class="col-span-2">Role name
+            <input id="role-name-input" type="text" placeholder="e.g., Auditor" />
+          </label>
+          <div class="actions end col-span-2">
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Role</button>
+          </div>
+        </form>
+        <div class="divider"></div>
+        <div id="roles-list" class="chips"></div>
+      </div>
+    </div>
+
+    <!-- Toasts -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+  <!-- Firebase (fill window.FIREBASE_CONFIG below with your project info) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script>
+    window.FIREBASE_CONFIG = {
+      apiKey: "AIzaSyB_zWnLpmB7I8xVDOTlz9N72ytkBxTcDrI",
+      authDomain: "expanse-management-8822b.firebaseapp.com",
+      databaseURL: "https://expanse-management-8822b-default-rtdb.firebaseio.com",
+      projectId: "expanse-management-8822b",
+      storageBucket: "expanse-management-8822b.firebasestorage.app",
+      messagingSenderId: "773105360149",
+      appId: "1:773105360149:web:928d763ebd319458419d1c",
+      measurementId: "G-GNPR7JEKW8",
+    };
+  </script>
+  <script src="js/firebase-sync.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
